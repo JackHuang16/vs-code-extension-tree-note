@@ -50,35 +50,20 @@ export class NoteProvider implements vscode.TreeDataProvider<NoteItem> {
 
     const parentPath = path.dirname(currentPath);
 
-    // If parent is the workspace root, return null (VS Code handles root)
+    // If parent is the workspace root, return null
     if (parentPath === this.workspaceRoot) {
       return null;
     }
 
-    // Reconstruct the parent NoteItem
-    // Use the same logic as getNotesInDir
     const name = path.basename(parentPath);
-    const mdPath = parentPath + ".md";
-
-    let fsPath: string | undefined = undefined;
-    if (fs.existsSync(mdPath) && fs.statSync(mdPath).isFile()) {
-      fsPath = mdPath;
-    }
-
-    let dirPath: string | undefined = undefined;
-    if (fs.existsSync(parentPath) && fs.statSync(parentPath).isDirectory()) {
-      dirPath = parentPath;
-    }
-
-    // Depth calculation
     const relativePath = path.relative(this.workspaceRoot, parentPath);
     const depth = relativePath === "" ? 0 : relativePath.split(path.sep).length;
 
     return new NoteItem(
       name,
       vscode.TreeItemCollapsibleState.Collapsed,
-      fsPath,
-      dirPath,
+      undefined,
+      parentPath,
       depth
     );
   }

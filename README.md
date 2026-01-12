@@ -2,7 +2,7 @@
 
 # Tree Note
 
-**Tree Note** 是一款為 VS Code 量身打造的層級式筆記管理擴充功能。它採用直觀的「A+B 節點配對邏輯」，讓您的 Markdown 筆記與資料夾結構完美融合，提供如原生檔案總管般流暢的樹狀筆記體驗。
+**Tree Note** 是一款為 VS Code 量身打造的層級式筆記管理擴充功能。它讓您可以輕鬆組織 Markdown 筆記，提供如原生檔案總管般流暢的樹狀導覽體驗。
 
 ## ✨ 主要特色
 
@@ -59,7 +59,7 @@
 
 # Tree Note (English)
 
-**Tree Note** is a hierarchical note-taking extension tailored for VS Code. It utilizes an intuitive "A+B Node Pairing Logic," allowing your Markdown notes and folder structures to merge seamlessly, providing a smooth tree-like note-taking experience similar to the native file explorer.
+**Tree Note** is a hierarchical note-taking extension tailored for VS Code. It allows you to easily organize your Markdown notes, providing a smooth tree-like navigation experience similar to the native file explorer.
 
 ## ✨ Key Features
 

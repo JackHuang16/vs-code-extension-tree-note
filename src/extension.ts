@@ -186,17 +186,8 @@ export function activate(context: vscode.ExtensionContext) {
   });
   vscode.commands.registerCommand("treeNote.addNote", async (node: any) => {
     let targetDir = rootPath;
-    if (node) {
-      if (node.dirPath) {
-        targetDir = node.dirPath;
-      } else if (node.fsPath) {
-        const parentDir = path.join(
-          path.dirname(node.fsPath),
-          path.basename(node.fsPath, ".md")
-        );
-        if (!fs.existsSync(parentDir)) fs.mkdirSync(parentDir);
-        targetDir = parentDir;
-      }
+    if (node && node.dirPath) {
+      targetDir = node.dirPath;
     }
     await createNoteCore(targetDir, node);
   });
@@ -206,17 +197,8 @@ export function activate(context: vscode.ExtensionContext) {
       return;
     }
     let targetDir = rootPath;
-    if (node) {
-      if (node.dirPath) {
-        targetDir = node.dirPath;
-      } else if (node.fsPath) {
-        const parentDir = path.join(
-          path.dirname(node.fsPath),
-          path.basename(node.fsPath, ".md")
-        );
-        if (!fs.existsSync(parentDir)) fs.mkdirSync(parentDir);
-        targetDir = parentDir;
-      }
+    if (node && node.dirPath) {
+      targetDir = node.dirPath;
     }
     await createFolderCore(targetDir, node);
   });
