@@ -6,10 +6,10 @@
 
 ## ✨ 主要特色
 
-### 1. 獨家「A+B」層級邏輯
+### 1. 層級式筆記結構
 
-- **完美融合**：當資料夾與 Markdown 檔案同名時（例如 `Project.md` 與 `Project/` 資料夾），Tree Note 會自動將其識別為同一個節點。
-- **直觀導覽**：您可以直接點擊筆記節點查看內容，同時展開其下方的子筆記或子資料夾。
+- **清晰的目錄管理**：支援資料夾與 Markdown 筆記的層級式排列，讓您的筆記結構一目了然。
+- **直觀導覽**：您可以自由建立、組織並切換不同的筆記與資料夾。
 
 ### 2. 強大的樹狀操作
 
@@ -32,19 +32,19 @@
 ## 🚀 快速上手
 
 1. **安裝套件**：在 VS Code 中載入本擴充功能。
-2. **開啟檢視器**：在側邊欄（Explorer）中搜尋「Tree Note」區塊。
+2. **開啟檢視器**：在側邊欄「檔案總管 (Explorer)」下方找到「Tree Note」區塊。
 3. **管理筆記**：
    - 使用標題列的圖示與新增文件或資料夾開始建立結構。
-   - 資料存放路徑固定於專案內的 `notes-data/` 目錄，方便您進行版本控制。
+   - 資料存放路徑固定於 VS Code 的全域儲存目錄中，確保您的筆記在不同專案間都能持續存取。
 
 ## 🛠 指令列表 (Commands)
 
-| 指令                    | 說明                                        |
-| ----------------------- | ------------------------------------------- |
-| `treeNote.refreshEntry` | 重新讀取檔案系統並更新樹狀圖。              |
-| `treeNote.expandAll`    | 將所有資料夾展開至第 3 層。                 |
-| `treeNote.collapseAll`  | 折疊所有開啟的資料夾。                      |
-| `treeNote.renameNote`   | 重新命名筆記或資料夾（支援 A+B 同步改名）。 |
+| 指令                    | 說明                           |
+| ----------------------- | ------------------------------ |
+| `treeNote.refreshEntry` | 重新讀取檔案系統並更新樹狀圖。 |
+| `treeNote.expandAll`    | 將所有資料夾展開至第 3 層。    |
+| `treeNote.collapseAll`  | 折疊所有開啟的資料夾。         |
+| `treeNote.renameNote`   | 重新命名筆記或資料夾。         |
 
 ## 📦 資料存放
 
@@ -63,10 +63,10 @@
 
 ## ✨ Key Features
 
-### 1. Exclusive "A+B" Hierarchy Logic
+### 1. Hierarchical Note Structure
 
-- **Perfect Integration**: When a folder and a Markdown file share the same name (e.g., `Project.md` and `Project/` folder), Tree Note automatically identifies them as a single unified node.
-- **Intuitive Navigation**: Click on a note node to view its content and simultaneously expand its sub-notes or sub-folders.
+- **Clear Organization**: Support for a tree-like hierarchy of folders and Markdown notes, making your structure easy to understand.
+- **Intuitive Navigation**: Easily create, organize, and navigate through your notes and folders.
 
 ### 2. Powerful Tree Operations
 
@@ -89,19 +89,19 @@
 ## 🚀 Getting Started
 
 1. **Install the Extension**: Load this extension in VS Code.
-2. **Open the View**: Find the "Tree Note" section in the Explorer sidebar.
+2. **Open the View**: Find the "Tree Note" section at the bottom of the "Explorer" sidebar.
 3. **Manage Notes**:
    - Use the icons in the title bar to start building your structure.
-   - All data is stored in the `notes-data/` directory within the project for easy version control.
+   - All data is stored in VS Code's global storage directory, ensuring your notes persist across different workspaces.
 
 ## 🛠 Commands
 
-| Command                 | Description                                                   |
-| ----------------------- | ------------------------------------------------------------- |
-| `treeNote.refreshEntry` | Reload the file system and update the tree view.              |
-| `treeNote.expandAll`    | Expand all folders up to 3 layers deep.                       |
-| `treeNote.collapseAll`  | Collapse all open folders.                                    |
-| `treeNote.renameNote`   | Rename notes or folders (supports synchronized A+B renaming). |
+| Command                 | Description                                      |
+| ----------------------- | ------------------------------------------------ |
+| `treeNote.refreshEntry` | Reload the file system and update the tree view. |
+| `treeNote.expandAll`    | Expand all folders up to 3 layers deep.          |
+| `treeNote.collapseAll`  | Collapse all open folders.                       |
+| `treeNote.renameNote`   | Rename notes or folders.                         |
 
 ## 📦 Data Storage
 

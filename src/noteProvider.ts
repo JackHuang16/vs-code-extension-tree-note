@@ -95,55 +95,41 @@ export class NoteProvider implements vscode.TreeDataProvider<NoteItem> {
 
     const files = fs.readdirSync(dirPath);
     const items: NoteItem[] = [];
-    const processedNames = new Set<string>();
-
-    files.forEach((file) => {
-      if (path.extname(file).toLowerCase() === ".md") {
-        const name = path.basename(file, ".md");
-        const possibleDir = path.join(dirPath, name);
-        const hasChildren =
-          pathExists(possibleDir) && fs.statSync(possibleDir).isDirectory();
-        const fullPath = path.join(dirPath, file);
-
-        items.push(
-          new NoteItem(
-            name,
-            hasChildren
-              ? vscode.TreeItemCollapsibleState.Collapsed
-              : vscode.TreeItemCollapsibleState.None,
-            fullPath,
-            hasChildren ? possibleDir : undefined,
-            currentDepth
-          )
-        );
-
-        processedNames.add(name);
-      }
-    });
 
     files.forEach((file) => {
       const fullPath = path.join(dirPath, file);
-      let isDirectory = false;
-      try {
-        isDirectory = fs.statSync(fullPath).isDirectory();
-      } catch (e) {}
+      const stat = fs.statSync(fullPath);
 
-      if (isDirectory) {
-        if (!processedNames.has(file)) {
-          items.push(
-            new NoteItem(
-              file,
-              vscode.TreeItemCollapsibleState.Collapsed,
-              undefined,
-              fullPath,
-              currentDepth
-            )
-          );
-        }
+      if (stat.isDirectory()) {
+        items.push(
+          new NoteItem(
+            file,
+            vscode.TreeItemCollapsibleState.Collapsed,
+            undefined,
+            fullPath,
+            currentDepth
+          )
+        );
+      } else if (path.extname(file).toLowerCase() === ".md") {
+        const name = path.basename(file, ".md");
+        items.push(
+          new NoteItem(
+            name,
+            vscode.TreeItemCollapsibleState.None,
+            fullPath,
+            undefined,
+            currentDepth
+          )
+        );
       }
     });
 
-    items.sort((a, b) => a.label.localeCompare(b.label));
+    items.sort((a, b) => {
+      // Sort: Folders first, then Files
+      if (a.dirPath && !b.dirPath) return -1;
+      if (!a.dirPath && b.dirPath) return 1;
+      return a.label.localeCompare(b.label);
+    });
     return items;
   }
 }

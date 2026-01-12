@@ -271,9 +271,10 @@ export function activate(context: vscode.ExtensionContext) {
           if (fs.existsSync(newPath))
             return vscode.window.showErrorMessage("Name exists!");
           fs.renameSync(node.fsPath, newPath);
-        }
-        if (node.dirPath && fs.existsSync(node.dirPath)) {
+        } else if (node.dirPath && fs.existsSync(node.dirPath)) {
           const newDirPath = path.join(path.dirname(node.dirPath), newName);
+          if (fs.existsSync(newDirPath))
+            return vscode.window.showErrorMessage("Name exists!");
           fs.renameSync(node.dirPath, newDirPath);
         }
         noteProvider.refresh();
