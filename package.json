@@ -2,7 +2,7 @@
   "name": "vs-code-extension-tree-note",
   "displayName": "Tree Note",
   "description": "A hierarchical note-taking extension for Antigravity.",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "publisher": "antigravity",
   "author": "Jack Huang",
   "icon": "resources/icon.png",
