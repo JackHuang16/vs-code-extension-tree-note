@@ -1,0 +1,16 @@
+.vscode/**
+.vscode-test/**
+out/test/**
+src/**
+.gitignore
+.vscodeignore
+tsconfig.json
+vsc-extension-quickstart.md
+node_modules/**
+**/*.map
+**/*.ts
+yarn.lock
+package-lock.json
+*.vsix
+resources/*.svg
+dist/**
