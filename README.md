@@ -6,6 +6,12 @@
 
 **Tree Note** 是一款為 VS Code、Antigravity、Cursor...等,量身打造的層級式筆記管理擴充功能。它讓您可以輕鬆組織 Markdown 筆記，提供如原生檔案總管般流暢的樹狀導覽體驗。
 
+### Tree Note 位置
+
+|                     Antigravity                      |                   VS Code                   |
+| :--------------------------------------------------: | :-----------------------------------------: |
+| ![Antigravity Sample](static/antigravity-sample.png) | ![VS Code Sample](static/vscode-sample.png) |
+
 ## ✨ 主要特色
 
 ### 1. 層級式筆記結構
@@ -41,17 +47,17 @@
 
 您可以在 IDE 的全域儲存目錄中找到 `notes-data` 資料夾。
 
-### 範例位置 (Sample Locations)
-
-|                     Antigravity                      |                   VS Code                   |
-| :--------------------------------------------------: | :-----------------------------------------: |
-| ![Antigravity Sample](static/antigravity-sample.png) | ![VS Code Sample](static/vscode-sample.png) |
-
 # Tree Note (English)
 
 > ⚠️ **Note**: If you install Tree Note in different IDEs, the note data will not be synchronized because their installation locations are different. Manual synchronization will be required.
 
 **Tree Note** is a hierarchical note-taking extension tailored for VS Code, Antigravity, Cursor...etc. It allows you to easily organize your Markdown notes, providing a smooth tree-like navigation experience similar to the native file explorer.
+
+### Tree Note Locations
+
+|                     Antigravity                      |                   VS Code                   |
+| :--------------------------------------------------: | :-----------------------------------------: |
+| ![Antigravity Sample](static/antigravity-sample.png) | ![VS Code Sample](static/vscode-sample.png) |
 
 ## ✨ Key Features
 
@@ -87,9 +93,3 @@
    - All data is stored in your IDE's global storage directory, ensuring your notes persist across different workspaces.
 
 You can find the `notes-data` folder within your IDE's global storage directory.
-
-### Sample Locations
-
-|                     Antigravity                      |                   VS Code                   |
-| :--------------------------------------------------: | :-----------------------------------------: |
-| ![Antigravity Sample](static/antigravity-sample.png) | ![VS Code Sample](static/vscode-sample.png) |
