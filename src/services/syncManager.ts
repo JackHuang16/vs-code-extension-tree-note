@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { GistService } from "./gistService";
 import { LocalStateManager } from "./localStateManager";
-import { Manifest, ManifestItem } from "../types";
+import { Manifest, ManifestItem, LocalSyncItem, LocalSyncMap } from "../types";
 import {
   MANIFEST_FILENAME,
   MAX_TOTAL_SIZE_MB,
@@ -37,17 +37,53 @@ export class SyncManager {
     this.isSyncing = true;
 
     try {
-      // 1. Check/Get Gist ID
+      // 1. Identify Target (Cloud Check First)
       let gistId = this.localState.getGistId();
+
+      if (gistId) {
+        // Quick connection test since ID exists
+        try {
+          await this.gistService.getGist(gistId);
+        } catch (error: any) {
+          if (String(error).includes("404")) {
+            this.localState.setGistId("");
+            gistId = ""; // Force re-identification
+            vscode.window.showWarningMessage(
+              "The linked Gist no longer exists. Please reconnect."
+            );
+          } else {
+            throw error; // Other network errors
+          }
+        }
+      }
+
+      // 2. Identification / Creation (If no valid ID)
       if (!gistId) {
         const resultId = await this.promptForGist();
         if (!resultId) {
           return;
-        } // User cancelled
+        }
         gistId = resultId;
         this.localState.setGistId(gistId);
       }
 
+      // 3. Document Preparation & Validation (Local Check Second)
+      const localFiles = this.scanLocalFiles(rootPath);
+      try {
+        this.performSizeCheck(localFiles);
+      } catch (e: any) {
+        const choice = await vscode.window.showWarningMessage(
+          e.message,
+          { modal: true },
+          { title: "Continue" },
+          { title: "Cancel", isCloseAffordance: true }
+        );
+        if (choice?.title !== "Continue") {
+          return;
+        }
+      }
+
+      // 4. Official Sync with Progress
       await vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
@@ -55,16 +91,22 @@ export class SyncManager {
           cancellable: true,
         },
         async (progress, token) => {
+          if (token.isCancellationRequested) {
+            return;
+          }
+
           progress.report({ message: "Connecting to Gist..." });
 
-          // 2. Fetch Remote Manifest
+          // 5. Fetch Remote Manifest
           let remoteManifest: Manifest | null = null;
           let gistFiles: any = {};
-          let gistUpdatedAt = 0;
 
           try {
-            const gist = await this.gistService.getGist(gistId);
-            gistUpdatedAt = new Date(gist.updated_at).getTime();
+            const gist = await this.gistService.getGist(gistId!);
+            if (token.isCancellationRequested) {
+              return;
+            }
+
             gistFiles = gist.files;
             if (gistFiles[MANIFEST_FILENAME]) {
               try {
@@ -72,9 +114,9 @@ export class SyncManager {
                   gistFiles[MANIFEST_FILENAME].content
                 );
               } catch (e) {
-                // Manifest corrupted
                 const choice = await vscode.window.showErrorMessage(
-                  "Cloud synchronization settings are corrupted. How would you like to proceed?",
+                  "Cloud settings corrupted. How would you like to proceed?",
+                  { modal: true },
                   "Force Push (Overwrite Cloud)",
                   "Cancel"
                 );
@@ -88,7 +130,6 @@ export class SyncManager {
                 };
               }
             } else {
-              // New Gist or no manifest
               remoteManifest = {
                 version: "1.0",
                 lastSync: new Date().toISOString(),
@@ -97,59 +138,42 @@ export class SyncManager {
             }
           } catch (error: any) {
             const errorMsg = String(error);
-            let selection: string | undefined;
 
             if (errorMsg.includes("404")) {
-              selection = await vscode.window.showErrorMessage(
-                "無法讀取遠端 Gist (404 Not Found)。該 Gist 可能已被刪除。是否要重置連結設定以重新建立？",
-                "重置設定",
-                "取消"
+              this.localState.setGistId("");
+              await vscode.window.showErrorMessage(
+                "The previously linked Gist was not found (404). Your connection has been reset. Please try syncing again to create a new Gist.",
+                { modal: true }
               );
-            } else {
-              // For other errors, providing an option to reset is also helpful (e.g. 401/403 or corrupted ID)
-              selection = await vscode.window.showErrorMessage(
-                `同步發生錯誤: ${errorMsg}`,
-                "重置連結設定",
-                "取消"
-              );
+              return;
             }
 
-            if (selection === "重置設定" || selection === "重置連結設定") {
+            const selection = await vscode.window.showErrorMessage(
+              `Sync Failed: ${errorMsg}\n\nTroubleshooting:\n1. Ensure your network is stable.\n2. If the Gist is too large, click 'Logout Gist', delete the Gist on GitHub, and start a fresh sync.\n(Note: Your local files are safe and will NOT be deleted.)`,
+              { modal: true },
+              { title: "Logout Gist" },
+              { title: "Open GitHub" },
+              { title: "Cancel", isCloseAffordance: true }
+            );
+
+            if (selection?.title === "Logout Gist") {
               this.localState.setGistId("");
               vscode.window.showInformationMessage(
-                "已重置連結設定，正在重新啟動同步流程..."
+                "Gist logged out. Local notes were kept safe."
               );
-              // Important: Reset flag so the next command is not blocked
-              this.isSyncing = false;
-              // Trigger new sync after a small delay to allow current one to finish
-              setTimeout(() => {
-                vscode.commands.executeCommand("treeNote.syncToGist");
-              }, 500);
+            } else if (selection?.title === "Open GitHub") {
+              vscode.env.openExternal(
+                vscode.Uri.parse("https://gist.github.com/mine")
+              );
             }
             return;
           }
 
-          // 3. Scan Local Files
-          progress.report({ message: "Scanning local files..." });
-          const localFiles = this.scanLocalFiles(rootPath);
-
-          // 4. Pre-check Sizes
-          try {
-            this.performSizeCheck(localFiles);
-          } catch (e: any) {
-            const choice = await vscode.window.showWarningMessage(
-              e.message,
-              "Continue",
-              "Cancel"
-            );
-            if (choice !== "Continue") {
-              return;
-            }
+          // 6. Compute Diff
+          if (token.isCancellationRequested) {
+            return;
           }
-
-          // 5. Compute Diff
           progress.report({ message: "Calculating differences..." });
-
           const actions = await this.computeDiff(
             rootPath,
             localFiles,
@@ -157,8 +181,11 @@ export class SyncManager {
             gistFiles
           );
 
-          // 6. Execute Actions (Batching)
-          // 6. Execute Actions (Batching)
+          if (token.isCancellationRequested) {
+            return;
+          }
+
+          // 7. Execute Actions
           const uploadActions = actions.filter(
             (a) => a.type === "upload" || a.type === "delete"
           );
@@ -166,26 +193,25 @@ export class SyncManager {
             (a) => a.type === "download" || a.type === "conflict_gist"
           );
 
-          // Handle Conflict Renames & Downloads first (Local operations)
+          // Local Ops (Downloads / Conflicts)
           for (const action of downloadActions) {
+            if (token.isCancellationRequested) {
+              return;
+            }
+
             if (action.type === "conflict_gist") {
-              // Strategy: Local Wins.
-              // 1. Keep local file AS IS (Local content).
-              // 2. Create a NEW local file for the Remote content: "filename (Gist Conflict).md"
-              // 3. Upload BOTH files to Gist.
-
-              // Generate Timestamp: YYYY-MM-DD HH-mm-ss
-              // Note: We use '-' instead of '/' and ':' because they are invalid in filenames on most OS.
               const now = new Date();
-              const YYYY = now.getFullYear();
-              const MM = String(now.getMonth() + 1).padStart(2, "0");
-              const DD = String(now.getDate()).padStart(2, "0");
-              const hh = String(now.getHours()).padStart(2, "0");
-              const mm = String(now.getMinutes()).padStart(2, "0");
-              const ss = String(now.getSeconds()).padStart(2, "0");
-
-              const timestamp = `${YYYY}-${MM}-${DD} ${hh}h-${mm}m-${ss}s`;
-
+              const timestamp = `${now.getFullYear()}-${String(
+                now.getMonth() + 1
+              ).padStart(2, "0")}-${String(now.getDate()).padStart(
+                2,
+                "0"
+              )} ${String(now.getHours()).padStart(2, "0")}h-${String(
+                now.getMinutes()
+              ).padStart(2, "0")}m-${String(now.getSeconds()).padStart(
+                2,
+                "0"
+              )}s`;
               const ext = path.extname(action.localPath);
               const conflictPath = path.join(
                 path.dirname(action.localPath),
@@ -195,13 +221,12 @@ export class SyncManager {
                 )} (Gist Conflict ${timestamp})${ext}`
               );
 
-              // Write Remote Content to the new Conflict File
               if (action.content) {
                 fs.writeFileSync(conflictPath, action.content, "utf8");
-                const hash = calculateSha1(action.content);
-                this.localState.updateFileBaseHash(conflictPath, hash);
-
-                // 2. Queue Upload for this new Gist Conflict file
+                this.localState.updateFileBaseHash(
+                  conflictPath,
+                  calculateSha1(action.content)
+                );
                 uploadActions.push({
                   type: "upload",
                   localPath: conflictPath,
@@ -209,45 +234,44 @@ export class SyncManager {
                 });
               }
 
-              // 3. Queue Upload for the Original File (Local Content wins -> Overwrite Remote)
               if (action.localContent !== undefined) {
                 uploadActions.push({
                   type: "upload",
                   localPath: action.localPath,
                   content: action.localContent,
                 });
-                // We also need to update the base hash for the original file to match the local content
-                // so the next sync sees it as clean.
-                const localHash = calculateSha1(action.localContent);
-                this.localState.updateFileBaseHash(action.localPath, localHash);
+                this.localState.updateFileBaseHash(
+                  action.localPath,
+                  calculateSha1(action.localContent)
+                );
               }
-            } else if (action.type === "download") {
-              // New remote file or remote update
-              if (action.content) {
-                const targetDir = path.dirname(action.localPath);
-                if (!fs.existsSync(targetDir)) {
-                  fs.mkdirSync(targetDir, { recursive: true });
-                }
-                fs.writeFileSync(action.localPath, action.content, "utf8");
-
-                const hash = calculateSha1(action.content);
-                this.localState.updateFileBaseHash(action.localPath, hash);
-
-                if (action.remoteItem) {
-                  this.localState.updateFileRecord(
-                    action.localPath,
-                    action.remoteItem.lastModified
-                  );
-                }
+            } else if (action.type === "download" && action.content) {
+              const targetDir = path.dirname(action.localPath);
+              if (!fs.existsSync(targetDir)) {
+                fs.mkdirSync(targetDir, { recursive: true });
+              }
+              fs.writeFileSync(action.localPath, action.content, "utf8");
+              this.localState.updateFileBaseHash(
+                action.localPath,
+                calculateSha1(action.content)
+              );
+              if (action.remoteItem) {
+                this.localState.updateFileRecord(
+                  action.localPath,
+                  action.remoteItem.lastModified
+                );
               }
             }
           }
 
-          // Handle Uploads & Deletes (Remote operations) -> Batching
+          // Remote Ops (Uploads / Deletes with Batching)
           if (uploadActions.length > 0) {
-            let totalBatches = Math.ceil(uploadActions.length / BATCH_SIZE);
-
+            const totalBatches = Math.ceil(uploadActions.length / BATCH_SIZE);
             for (let i = 0; i < uploadActions.length; i += BATCH_SIZE) {
+              if (token.isCancellationRequested) {
+                return;
+              }
+
               const batch = uploadActions.slice(i, i + BATCH_SIZE);
               const patchFiles: Record<string, { content: string } | null> = {};
 
@@ -255,60 +279,37 @@ export class SyncManager {
                 message: `Syncing batch ${Math.ceil(
                   (i + 1) / BATCH_SIZE
                 )}/${totalBatches}...`,
-                increment: (1 / totalBatches) * 50,
+                increment: (1 / totalBatches) * 100,
               });
 
               for (const action of batch) {
                 if (action.type === "delete" && action.remoteItem) {
-                  // DELETE
                   patchFiles[action.remoteItem.gistFilename] = null;
-
-                  // Remove from Manifest Memory
                   remoteManifest!.items = remoteManifest!.items.filter(
                     (item) => item.id !== action.remoteItem!.id
                   );
-
-                  // Clean up Local State Tombstone
                   this.localState.removeRecordById(action.remoteItem.id);
                 } else if (
                   action.type === "upload" &&
-                  action.content !== undefined
+                  action.content !== undefined &&
+                  action.content !== ""
                 ) {
-                  // Check for Empty Content (Gist API Limitation)
-                  if (action.content === "") {
-                    vscode.window.showWarningMessage(
-                      `Skipped empty file: ${path.basename(
-                        action.localPath
-                      )} (GitHub Gist does not support empty files)`
-                    );
-                    continue;
-                  }
-
-                  // UPLOAD
-                  let gistFilename = path.basename(action.localPath);
                   const id = this.localState.getFileId(action.localPath);
-
-                  // Check existing mapping
                   const existingItem = remoteManifest?.items.find(
                     (item) => item.id === id
                   );
+                  let gistFilename = existingItem
+                    ? existingItem.gistFilename
+                    : path.basename(action.localPath);
 
-                  if (existingItem) {
-                    gistFilename = existingItem.gistFilename;
-                  } else {
-                    // New file collision check
-                    if (gistFiles[gistFilename]) {
-                      gistFilename = gistFilename.replace(
-                        ".md",
-                        `-${id.substring(0, 8)}.md`
-                      );
-                    }
+                  if (!existingItem && gistFiles[gistFilename]) {
+                    gistFilename = gistFilename.replace(
+                      ".md",
+                      `-${id.substring(0, 8)}.md`
+                    );
                   }
 
                   patchFiles[gistFilename] = { content: action.content };
-
-                  // Update Manifest object in memory
-                  const now = Date.now();
                   const relativePath = path.relative(
                     rootPath,
                     action.localPath
@@ -317,42 +318,35 @@ export class SyncManager {
                     (item) => item.id === id
                   );
                   const newItem: ManifestItem = {
-                    id: id,
+                    id,
                     path: relativePath,
-                    gistFilename: gistFilename,
-                    lastModified: now,
+                    gistFilename,
+                    lastModified: Date.now(),
                   };
 
-                  if (itemIdx >= 0) {
-                    remoteManifest!.items[itemIdx] = newItem;
-                  } else {
-                    remoteManifest!.items.push(newItem);
-                  }
+                  if (itemIdx >= 0) remoteManifest!.items[itemIdx] = newItem;
+                  else remoteManifest!.items.push(newItem);
 
-                  // Update local state lastModified
-                  this.localState.updateFileRecord(action.localPath, now);
+                  this.localState.updateFileRecord(
+                    action.localPath,
+                    newItem.lastModified
+                  );
                 }
               }
 
-              // Execute Patch for this batch
               if (Object.keys(patchFiles).length > 0) {
-                await this.gistService.updateGist(gistId, patchFiles);
+                await this.gistService.updateGist(gistId!, patchFiles);
               }
             }
           }
 
-          // Update Base Hashes for successful Uploads
-          for (const action of uploadActions) {
-            if (action.type === "upload" && action.content !== undefined) {
-              const hash = calculateSha1(action.content);
-              this.localState.updateFileBaseHash(action.localPath, hash);
-            }
+          // 8. Final Step: Update Manifest
+          if (token.isCancellationRequested) {
+            return;
           }
-
-          // 7. Final Step: Update Manifest
           progress.report({ message: "Updating manifest..." });
           remoteManifest!.lastSync = new Date().toISOString();
-          await this.gistService.updateGist(gistId, {
+          await this.gistService.updateGist(gistId!, {
             [MANIFEST_FILENAME]: {
               content: JSON.stringify(remoteManifest, null, 2),
             },
@@ -396,6 +390,7 @@ export class SyncManager {
     const largeFiles: string[] = [];
 
     for (const file of files) {
+      if (!fs.existsSync(file)) continue;
       const stats = fs.statSync(file);
       const sizeMB = stats.size / (1024 * 1024);
 
@@ -408,9 +403,11 @@ export class SyncManager {
 
     if (largeFiles.length > 0) {
       vscode.window.showWarningMessage(
-        `Skipped files larger than ${MAX_FILE_SIZE_MB}MB: ${largeFiles.join(
+        `Skipped ${
+          largeFiles.length
+        } files larger than ${MAX_FILE_SIZE_MB}MB: ${largeFiles.join(
           ", "
-        )}. Consider using image links.`
+        )}. These files will be ignored during sync.`
       );
     }
 
@@ -418,7 +415,7 @@ export class SyncManager {
       throw new Error(
         `Total sync size (${totalSize.toFixed(
           1
-        )}MB) exceeds the recommended limit of ${MAX_TOTAL_SIZE_MB}MB. Sync may be unstable.`
+        )}MB) exceeds the recommended limit of ${MAX_TOTAL_SIZE_MB}MB. GitHub Gist may have stability issues with large data. Do you want to continue?`
       );
     }
   }
