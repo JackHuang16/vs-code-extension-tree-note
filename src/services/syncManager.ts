@@ -119,7 +119,12 @@ export class SyncManager {
               vscode.window.showInformationMessage(
                 "已重置連結設定，正在重新啟動同步流程..."
               );
-              vscode.commands.executeCommand("treeNote.syncToGist");
+              // Important: Reset flag so the next command is not blocked
+              this.isSyncing = false;
+              // Trigger new sync after a small delay to allow current one to finish
+              setTimeout(() => {
+                vscode.commands.executeCommand("treeNote.syncToGist");
+              }, 500);
             }
             return;
           }
@@ -179,7 +184,7 @@ export class SyncManager {
               const mm = String(now.getMinutes()).padStart(2, "0");
               const ss = String(now.getSeconds()).padStart(2, "0");
 
-              const timestamp = `${YYYY}-${MM}-${DD} ${hh}-${mm}-${ss}`;
+              const timestamp = `${YYYY}-${MM}-${DD} ${hh}h-${mm}m-${ss}s`;
 
               const ext = path.extname(action.localPath);
               const conflictPath = path.join(
