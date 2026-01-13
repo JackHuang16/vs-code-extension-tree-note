@@ -2,7 +2,9 @@
 
 # Tree Note
 
-**Tree Note** 是一款為 VS Code 量身打造的層級式筆記管理擴充功能。它讓您可以輕鬆組織 Markdown 筆記，提供如原生檔案總管般流暢的樹狀導覽體驗。
+> ⚠️ **注意**：若將 Tree Note 同時安裝在不同 IDE，因為彼此的安裝位置不同，所以 note 資料並沒有同步，需要自行同步。
+
+**Tree Note** 是一款為 VS Code、Antigravity、Cursor...等,量身打造的層級式筆記管理擴充功能。它讓您可以輕鬆組織 Markdown 筆記，提供如原生檔案總管般流暢的樹狀導覽體驗。
 
 ## ✨ 主要特色
 
@@ -15,7 +17,7 @@
 
 - **快速新增**：一鍵新增根目錄或子層級的筆記與資料夾。
 - **自動展開**：建立新項目後，系統會自動展開父資料夾，確保您能立即看到結果。
-- **全局控制**：支援標題列的一鍵「全部展開」與「全部縮合」功能。
+- **全域控制**：支援標題列的一鍵「全部展開」與「全部縮合」功能。
 
 ### 3. 安全與資料誠信
 
@@ -31,35 +33,25 @@
 
 ## 🚀 快速上手
 
-1. **安裝套件**：在 VS Code 中載入本擴充功能。
+1. **安裝套件**：在 VS Code、Antigravity、Cursor...etc 等,中載入本擴充功能。
 2. **開啟檢視器**：在側邊欄「檔案總管 (Explorer)」下方找到「Tree Note」區塊。
 3. **管理筆記**：
    - 使用標題列的圖示與新增文件或資料夾開始建立結構。
-   - 資料存放路徑固定於 VS Code 的全域儲存目錄中，確保您的筆記在不同專案間都能持續存取。
+   - 資料存放路徑固定於 IDE 的全域儲存目錄中，確保您的筆記在不同專案間都能持續存取。
 
-## 🛠 指令列表 (Commands)
+您可以在 IDE 的全域儲存目錄中找到 `notes-data` 資料夾。
 
-| 指令                    | 說明                           |
-| ----------------------- | ------------------------------ |
-| `treeNote.refreshEntry` | 重新讀取檔案系統並更新樹狀圖。 |
-| `treeNote.expandAll`    | 將所有資料夾展開至第 3 層。    |
-| `treeNote.collapseAll`  | 折疊所有開啟的資料夾。         |
-| `treeNote.renameNote`   | 重新命名筆記或資料夾。         |
+### 範例位置 (Sample Locations)
 
-## 📦 資料存放
-
-所有的筆記預設存在套件的全局儲存路徑中，這確保您的筆記在不同專案間都能持續存取。
-您可以在 VS Code 的全域儲存目錄中找到 `notes-data` 資料夾。
-
----
-
-**Tree Note** - 讓您的思考層次分明，管理筆記不再混亂。
-
----
+|                     Antigravity                      |                   VS Code                   |
+| :--------------------------------------------------: | :-----------------------------------------: |
+| ![Antigravity Sample](static/antigravity-sample.png) | ![VS Code Sample](static/vscode-sample.png) |
 
 # Tree Note (English)
 
-**Tree Note** is a hierarchical note-taking extension tailored for VS Code. It allows you to easily organize your Markdown notes, providing a smooth tree-like navigation experience similar to the native file explorer.
+> ⚠️ **Note**: If you install Tree Note in different IDEs, the note data will not be synchronized because their installation locations are different. Manual synchronization will be required.
+
+**Tree Note** is a hierarchical note-taking extension tailored for VS Code, Antigravity, Cursor...etc. It allows you to easily organize your Markdown notes, providing a smooth tree-like navigation experience similar to the native file explorer.
 
 ## ✨ Key Features
 
@@ -88,26 +80,16 @@
 
 ## 🚀 Getting Started
 
-1. **Install the Extension**: Load this extension in VS Code.
+1. **Install the Extension**: Load this extension in VS Code, Antigravity, Cursor...etc.
 2. **Open the View**: Find the "Tree Note" section at the bottom of the "Explorer" sidebar.
 3. **Manage Notes**:
    - Use the icons in the title bar to start building your structure.
-   - All data is stored in VS Code's global storage directory, ensuring your notes persist across different workspaces.
+   - All data is stored in your IDE's global storage directory, ensuring your notes persist across different workspaces.
 
-## 🛠 Commands
+You can find the `notes-data` folder within your IDE's global storage directory.
 
-| Command                 | Description                                      |
-| ----------------------- | ------------------------------------------------ |
-| `treeNote.refreshEntry` | Reload the file system and update the tree view. |
-| `treeNote.expandAll`    | Expand all folders up to 3 layers deep.          |
-| `treeNote.collapseAll`  | Collapse all open folders.                       |
-| `treeNote.renameNote`   | Rename notes or folders.                         |
+### Sample Locations
 
-## 📦 Data Storage
-
-All notes are stored by default in the extension's global storage path, ensuring your notes persist across different workspaces.
-You can find the `notes-data` folder within VS Code's global storage directory.
-
----
-
-**Tree Note** - Keep your thoughts organized and your navigation effortless.
+|                     Antigravity                      |                   VS Code                   |
+| :--------------------------------------------------: | :-----------------------------------------: |
+| ![Antigravity Sample](static/antigravity-sample.png) | ![VS Code Sample](static/vscode-sample.png) |

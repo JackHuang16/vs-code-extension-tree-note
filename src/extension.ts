@@ -129,7 +129,7 @@ export function activate(context: vscode.ExtensionContext) {
       return;
     }
 
-    fs.writeFileSync(newFilePath, `# ${fileName}\n\n`);
+    fs.writeFileSync(newFilePath, "");
     noteProvider.refresh();
 
     if (parentNode) {
