@@ -2,6 +2,9 @@ import * as vscode from "vscode";
 import { NoteProvider } from "./noteProvider";
 import * as fs from "fs";
 import * as path from "path";
+import { GistService } from "./services/gistService";
+import { LocalStateManager } from "./services/localStateManager";
+import { SyncManager } from "./services/syncManager";
 
 export function activate(context: vscode.ExtensionContext) {
   // Use globalStorageUri for persistent storage across workspaces
@@ -12,6 +15,11 @@ export function activate(context: vscode.ExtensionContext) {
       fs.mkdirSync(rootPath, { recursive: true });
     } catch (e) {}
   }
+
+  // Initialize Services
+  const gistService = new GistService();
+  const localStateManager = new LocalStateManager(context);
+  const syncManager = new SyncManager(gistService, localStateManager);
 
   const noteProvider = new NoteProvider(rootPath);
 
@@ -202,6 +210,9 @@ export function activate(context: vscode.ExtensionContext) {
     }
     await createFolderCore(targetDir, node);
   });
+  vscode.commands.registerCommand("treeNote.syncToGist", async () => {
+    await syncManager.sync(rootPath);
+  });
   vscode.commands.registerCommand("treeNote.deleteNote", async (node: any) => {
     if (!node) return;
     let message = `Delete '${node.label}'?`;
@@ -228,8 +239,10 @@ export function activate(context: vscode.ExtensionContext) {
     );
     if (answer === "Delete") {
       try {
-        if (node.fsPath && fs.existsSync(node.fsPath))
+        if (node.fsPath && fs.existsSync(node.fsPath)) {
           fs.unlinkSync(node.fsPath);
+          localStateManager.handleFileDelete(node.fsPath);
+        }
         if (node.dirPath && fs.existsSync(node.dirPath))
           fs.rmSync(node.dirPath, { recursive: true, force: true });
         noteProvider.refresh();
@@ -253,6 +266,7 @@ export function activate(context: vscode.ExtensionContext) {
           if (fs.existsSync(newPath))
             return vscode.window.showErrorMessage("Name exists!");
           fs.renameSync(node.fsPath, newPath);
+          localStateManager.handleFileRename(node.fsPath, newPath);
         } else if (node.dirPath && fs.existsSync(node.dirPath)) {
           const newDirPath = path.join(path.dirname(node.dirPath), newName);
           if (fs.existsSync(newDirPath))
