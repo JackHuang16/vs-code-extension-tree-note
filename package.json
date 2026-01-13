@@ -175,7 +175,7 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "clean-cache": "rm -rf dist/*.vsix",
-    "package": "./scripts/package.sh",
+    "package": "npm test && ./scripts/package.sh",
     "test": "jest"
   },
   "license": "MIT",
