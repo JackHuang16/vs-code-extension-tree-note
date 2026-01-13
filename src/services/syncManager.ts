@@ -107,6 +107,16 @@ export class SyncManager {
               return;
             }
 
+            // Security Check: Only Secret Gists are allowed
+            if (gist.public) {
+              this.localState.setGistId("");
+              await vscode.window.showErrorMessage(
+                "For privacy reasons, Tree Note only supports using Secret Gists. The linked Gist is currently Public, so the connection has been terminated. Please re-sync and create or select a Secret Gist.",
+                { modal: true }
+              );
+              return;
+            }
+
             gistFiles = gist.files;
             const hasExistingFiles = Object.keys(gistFiles).some(
               (name) => name !== MANIFEST_FILENAME
