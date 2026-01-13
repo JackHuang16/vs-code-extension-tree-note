@@ -37,7 +37,16 @@ export class SyncManager {
     this.isSyncing = true;
 
     try {
-      // 1. Identify Target (Cloud Check First)
+      // 1. Local Pre-check (File Size Check First)
+      const localFiles = this.scanLocalFiles(rootPath);
+      try {
+        await this.performSizeCheck(localFiles);
+      } catch (e: any) {
+        // Sync cancelled or error occurred in size check
+        return;
+      }
+
+      // 2. Identify Target (Cloud Check)
       let gistId = this.localState.getGistId();
 
       if (gistId) {
@@ -57,7 +66,7 @@ export class SyncManager {
         }
       }
 
-      // 2. Identification / Creation (If no valid ID)
+      // 3. Identification / Creation (If no valid ID)
       if (!gistId) {
         const resultId = await this.promptForGist();
         if (!resultId) {
@@ -65,22 +74,6 @@ export class SyncManager {
         }
         gistId = resultId;
         this.localState.setGistId(gistId);
-      }
-
-      // 3. Document Preparation & Validation (Local Check Second)
-      const localFiles = this.scanLocalFiles(rootPath);
-      try {
-        this.performSizeCheck(localFiles);
-      } catch (e: any) {
-        const choice = await vscode.window.showWarningMessage(
-          e.message,
-          { modal: true },
-          { title: "Continue" },
-          { title: "Cancel", isCloseAffordance: true }
-        );
-        if (choice?.title !== "Continue") {
-          return;
-        }
       }
 
       // 4. Official Sync with Progress
@@ -450,12 +443,15 @@ export class SyncManager {
     return results;
   }
 
-  private performSizeCheck(files: string[]) {
+  private async performSizeCheck(files: string[]): Promise<void> {
     let totalSize = 0;
     const largeFiles: string[] = [];
 
     for (const file of files) {
-      if (!fs.existsSync(file)) continue;
+      if (!fs.existsSync(file)) {
+        continue;
+      }
+
       const stats = fs.statSync(file);
       const sizeMB = stats.size / (1024 * 1024);
 
@@ -467,21 +463,33 @@ export class SyncManager {
     }
 
     if (largeFiles.length > 0) {
-      vscode.window.showWarningMessage(
-        `Skipped ${
-          largeFiles.length
-        } files larger than ${MAX_FILE_SIZE_MB}MB: ${largeFiles.join(
-          ", "
-        )}. These files will be ignored during sync.`
+      const message = `The following files exceed the ${MAX_FILE_SIZE_MB}MB limit and will NOT be synced:\n\n${largeFiles.join(
+        ", "
+      )}\n\nDo you want to continue syncing without these files?`;
+
+      const choice = await vscode.window.showWarningMessage(
+        message,
+        { modal: true },
+        "Continue Syncing"
       );
+
+      if (choice !== "Continue Syncing") {
+        throw new Error("Sync cancelled due to large files.");
+      }
     }
 
     if (totalSize > MAX_TOTAL_SIZE_MB) {
-      throw new Error(
+      const choice = await vscode.window.showWarningMessage(
         `Total sync size (${totalSize.toFixed(
           1
-        )}MB) exceeds the recommended limit of ${MAX_TOTAL_SIZE_MB}MB. GitHub Gist may have stability issues with large data. Do you want to continue?`
+        )}MB) exceeds the recommended limit of ${MAX_TOTAL_SIZE_MB}MB. GitHub Gist may have stability issues with large data. Do you want to continue?`,
+        { modal: true },
+        "Continue"
       );
+
+      if (choice !== "Continue") {
+        throw new Error("Sync cancelled due to total size limit.");
+      }
     }
   }
 
