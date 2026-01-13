@@ -440,20 +440,23 @@ export class SyncManager {
   }
 
   private async promptForGist(): Promise<string | undefined> {
-    const createOption = "Create New Secret Gist";
-    const existingOption = "Enter Existing Gist ID";
+    const createOption = "Create New GitHub Secret Gist";
+    const existingOption = "Connect to Existing GitHub Gist ID";
 
+    // Explicitly inform the user about GitHub Gist usage
     const selection = await vscode.window.showQuickPick(
       [createOption, existingOption],
       {
-        placeHolder: "Tree Note Cloud Sync Setup",
+        placeHolder:
+          "Tree Note Cloud Sync: Choose how to sync with GitHub Gist",
+        ignoreFocusOut: true,
       }
     );
 
     if (selection === createOption) {
       const description = await vscode.window.showInputBox({
         prompt: "Enter Gist Description",
-        value: "Tree Note Backup",
+        value: "Tree Note Sync Data",
       });
       if (!description) return undefined;
 

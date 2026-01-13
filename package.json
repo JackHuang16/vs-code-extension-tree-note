@@ -78,43 +78,43 @@
       },
       {
         "command": "treeNote.syncToGist",
-        "title": "Sync to Gist",
-        "icon": "$(sync)"
+        "title": "Sync to GitHub Gist",
+        "icon": "$(cloud-upload)"
       }
     ],
     "menus": {
-        "view/title": [
-          {
-            "command": "treeNote.addRootFolder",
-            "when": "view == treeNoteView",
-            "group": "navigation@1"
-          },
-          {
-            "command": "treeNote.addRootNote",
-            "when": "view == treeNoteView",
-            "group": "navigation@2"
-          },
-          {
-            "command": "treeNote.expandAll",
-            "when": "view == treeNoteView && !treeNote.allExpanded",
-            "group": "navigation@3"
-          },
-          {
-            "command": "treeNote.collapseAll",
-            "when": "view == treeNoteView && treeNote.allExpanded",
-            "group": "navigation@3"
-          },
-          {
-            "command": "treeNote.refreshEntry",
-            "when": "view == treeNoteView",
-            "group": "navigation@4"
-          },
-          {
-            "command": "treeNote.syncToGist",
-            "when": "view == treeNoteView",
-            "group": "navigation@5"
-          }
-        ],
+      "view/title": [
+        {
+          "command": "treeNote.addRootFolder",
+          "when": "view == treeNoteView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "treeNote.addRootNote",
+          "when": "view == treeNoteView",
+          "group": "navigation@2"
+        },
+        {
+          "command": "treeNote.expandAll",
+          "when": "view == treeNoteView && !treeNote.allExpanded",
+          "group": "navigation@3"
+        },
+        {
+          "command": "treeNote.collapseAll",
+          "when": "view == treeNoteView && treeNote.allExpanded",
+          "group": "navigation@3"
+        },
+        {
+          "command": "treeNote.refreshEntry",
+          "when": "view == treeNoteView",
+          "group": "navigation@4"
+        },
+        {
+          "command": "treeNote.syncToGist",
+          "when": "view == treeNoteView",
+          "group": "navigation@5"
+        }
+      ],
       "view/item/context": [
         {
           "command": "treeNote.addFolder",
