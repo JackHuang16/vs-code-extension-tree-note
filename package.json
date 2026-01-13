@@ -175,12 +175,16 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "clean-cache": "rm -rf dist/*.vsix",
-    "package": "./scripts/package.sh"
+    "package": "./scripts/package.sh",
+    "test": "jest"
   },
   "license": "MIT",
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@types/node": "^25.0.6",
     "@types/vscode": "^1.90.0",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.6",
     "typescript": "^5.9.3"
   }
 }
