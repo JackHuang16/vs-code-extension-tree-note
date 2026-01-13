@@ -14,6 +14,8 @@ export interface Manifest {
 export interface LocalSyncItem {
   id: string;
   lastModified: number;
+  baseHash?: string; // SHA-1 hash of the content at last sync
+  deleted?: boolean;
 }
 
 export interface LocalSyncMap {

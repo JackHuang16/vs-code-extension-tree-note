@@ -84,7 +84,7 @@ export class GistService {
   }
 
   async getGist(gistId: string): Promise<any> {
-    return this.request("GET", `/gists/${gistId}`);
+    return this.request("GET", `/gists/${gistId}?ts=${Date.now()}`);
   }
 
   async createGist(

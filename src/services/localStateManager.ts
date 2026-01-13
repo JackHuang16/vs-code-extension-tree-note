@@ -3,9 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as crypto from "crypto";
 import { LocalSyncMap, LocalSyncItem } from "../types";
-
-const SYNC_DIR_NAME = "sync-memo";
-const SYNC_FILE_NAME = "local-sync-map.json";
+import { SYNC_DIR_NAME, SYNC_FILE_NAME } from "../constants";
 
 export class LocalStateManager {
   private storagePath: string;
@@ -140,8 +138,28 @@ export class LocalStateManager {
    */
   public handleFileDelete(fsPath: string): void {
     if (this.state.files[fsPath]) {
-      delete this.state.files[fsPath];
+      // Don't delete immediately. Mark as deleted (Tombstone) for sync propagation.
+      this.state.files[fsPath].deleted = true;
+      this.state.files[fsPath].lastModified = Date.now();
       this.saveState();
     }
+  }
+
+  public removeRecordById(id: string): void {
+    const entry = Object.entries(this.state.files).find(
+      ([_, val]) => val.id === id
+    );
+    if (entry) {
+      delete this.state.files[entry[0]];
+      this.saveState();
+    }
+  }
+
+  public updateFileBaseHash(fsPath: string, hash: string): void {
+    if (!this.state.files[fsPath]) {
+      this.getFileId(fsPath); // Ensure record exists
+    }
+    this.state.files[fsPath].baseHash = hash;
+    this.saveState();
   }
 }

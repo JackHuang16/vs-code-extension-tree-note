@@ -212,6 +212,7 @@ export function activate(context: vscode.ExtensionContext) {
   });
   vscode.commands.registerCommand("treeNote.syncToGist", async () => {
     await syncManager.sync(rootPath);
+    noteProvider.refresh();
   });
   vscode.commands.registerCommand("treeNote.deleteNote", async (node: any) => {
     if (!node) return;
@@ -243,8 +244,25 @@ export function activate(context: vscode.ExtensionContext) {
           fs.unlinkSync(node.fsPath);
           localStateManager.handleFileDelete(node.fsPath);
         }
-        if (node.dirPath && fs.existsSync(node.dirPath))
+        if (node.dirPath && fs.existsSync(node.dirPath)) {
+          // Recursively mark all children files as deleted (Tombstone)
+          const collectFiles = (dir: string) => {
+            try {
+              const entries = fs.readdirSync(dir, { withFileTypes: true });
+              for (const dirent of entries) {
+                const full = path.join(dir, dirent.name);
+                if (dirent.isDirectory()) {
+                  collectFiles(full);
+                } else if (dirent.isFile() && dirent.name.endsWith(".md")) {
+                  localStateManager.handleFileDelete(full);
+                }
+              }
+            } catch (e) {}
+          };
+          collectFiles(node.dirPath);
+
           fs.rmSync(node.dirPath, { recursive: true, force: true });
+        }
         noteProvider.refresh();
       } catch (err: any) {
         vscode.window.showErrorMessage(err.message);
