@@ -29,6 +29,17 @@ export function activate(context: vscode.ExtensionContext) {
   });
 
   vscode.commands.executeCommand("setContext", "treeNote.allExpanded", false);
+  const updateGistStatus = () => {
+    const gistId = localStateManager.getGistId();
+    vscode.commands.executeCommand(
+      "setContext",
+      "treeNote:hasGistId",
+      !!gistId
+    );
+  };
+
+  updateGistStatus();
+
   vscode.commands.registerCommand("treeNote.refreshEntry", () =>
     noteProvider.refresh()
   );
@@ -210,9 +221,30 @@ export function activate(context: vscode.ExtensionContext) {
     }
     await createFolderCore(targetDir, node);
   });
+  vscode.commands.registerCommand("treeNote.dashSeparator", () => {});
   vscode.commands.registerCommand("treeNote.syncToGist", async () => {
     await syncManager.sync(rootPath);
+    updateGistStatus();
     noteProvider.refresh();
+  });
+  vscode.commands.registerCommand("treeNote.logoutGist", async () => {
+    const disconnectItem: vscode.MessageItem = { title: "Disconnect" };
+    const cancelItem: vscode.MessageItem = {
+      title: "Cancel",
+      isCloseAffordance: true,
+    };
+
+    const answer = await vscode.window.showWarningMessage(
+      "Disconnect from GitHub Gist? This will stop syncing but keep your local files safe.",
+      { modal: true },
+      disconnectItem,
+      cancelItem
+    );
+    if (answer === disconnectItem) {
+      localStateManager.setGistId("");
+      updateGistStatus();
+      vscode.window.showInformationMessage("Disconnected from GitHub Gist.");
+    }
   });
   vscode.commands.registerCommand("treeNote.deleteNote", async (node: any) => {
     if (!node) return;

@@ -108,6 +108,10 @@ export class SyncManager {
             }
 
             gistFiles = gist.files;
+            const hasExistingFiles = Object.keys(gistFiles).some(
+              (name) => name !== MANIFEST_FILENAME
+            );
+
             if (gistFiles[MANIFEST_FILENAME]) {
               try {
                 remoteManifest = JSON.parse(
@@ -115,21 +119,72 @@ export class SyncManager {
                 );
               } catch (e) {
                 const choice = await vscode.window.showErrorMessage(
-                  "Cloud settings corrupted. How would you like to proceed?",
+                  "Cloud settings (manifest.json) corrupted. How would you like to proceed?",
                   { modal: true },
-                  "Force Push (Overwrite Cloud)",
-                  "Cancel"
+                  { title: "Overwrite Cloud", isCloseAffordance: false },
+                  { title: "Cancel", isCloseAffordance: true }
                 );
-                if (choice !== "Force Push (Overwrite Cloud)") {
+                if (choice?.title !== "Overwrite Cloud") {
                   return;
                 }
+                remoteManifest = {
+                  version: "1.0",
+                  lastSync: new Date(0).toISOString(),
+                  items: [],
+                };
+              }
+            } else if (hasExistingFiles) {
+              const mergeItem: vscode.MessageItem = {
+                title: "Merge (Download Cloud Data)",
+              };
+              const overwriteItem: vscode.MessageItem = {
+                title: "Overwrite (Keep Local Only)",
+              };
+
+              const choice = await vscode.window.showWarningMessage(
+                "This Gist contains existing data but no sync record. Would you like to download existing files?",
+                { modal: true },
+                mergeItem,
+                overwriteItem
+              );
+
+              if (choice === mergeItem) {
+                // Initialize a manifest by scanning current Gist files to ensure they are downloaded
+                remoteManifest = {
+                  version: "1.0",
+                  lastSync: new Date(0).toISOString(),
+                  items: [],
+                };
+                for (const filename of Object.keys(gistFiles)) {
+                  if (filename !== MANIFEST_FILENAME) {
+                    const localName = filename.endsWith(".md")
+                      ? filename
+                      : `${filename}.md`;
+                    remoteManifest.items.push({
+                      id: filename,
+                      path: localName.replace(/__/g, "/"),
+                      gistFilename: filename,
+                      lastModified: Date.now(),
+                    });
+                  }
+                }
+              } else if (choice === overwriteItem) {
+                // Initialize empty manifest and lastSync as now, so local files will overwrite cloud
                 remoteManifest = {
                   version: "1.0",
                   lastSync: new Date().toISOString(),
                   items: [],
                 };
+              } else {
+                // User clicked system Cancel button or closed the dialog
+                this.localState.setGistId("");
+                vscode.window.showWarningMessage(
+                  "Gist connection cancelled. You have been disconnected."
+                );
+                return;
               }
             } else {
+              // Truly empty Gist
               remoteManifest = {
                 version: "1.0",
                 lastSync: new Date().toISOString(),
@@ -592,7 +647,7 @@ export class SyncManager {
     } else if (selection === existingOption) {
       return await vscode.window.showInputBox({
         prompt: "Enter Gist ID",
-        placeHolder: "e.g. 78a...",
+        placeHolder: "e.g. 7a...",
       });
     }
 

@@ -26,7 +26,8 @@
       "explorer": [
         {
           "id": "treeNoteView",
-          "name": "Tree Note"
+          "name": "Tree Note",
+          "icon": "$(book)"
         }
       ]
     },
@@ -80,39 +81,59 @@
         "command": "treeNote.syncToGist",
         "title": "Sync to GitHub Gist",
         "icon": "$(cloud-upload)"
+      },
+      {
+        "command": "treeNote.logoutGist",
+        "title": "Disconnect Cloud",
+        "icon": "$(sign-out)"
+      },
+      {
+        "command": "treeNote.dashSeparator",
+        "title": "-",
+        "icon": "$(dash)"
       }
     ],
     "menus": {
       "view/title": [
         {
-          "command": "treeNote.addRootFolder",
+          "command": "treeNote.syncToGist",
           "when": "view == treeNoteView",
           "group": "navigation@1"
         },
         {
+          "command": "treeNote.logoutGist",
+          "when": "view == treeNoteView && treeNote:hasGistId",
+          "group": "navigation@2"
+        },
+        {
+          "command": "treeNote.dashSeparator",
+          "when": "view == treeNoteView",
+          "group": "navigation@3"
+        },
+        {
+          "command": "treeNote.addRootFolder",
+          "when": "view == treeNoteView",
+          "group": "navigation@10"
+        },
+        {
           "command": "treeNote.addRootNote",
           "when": "view == treeNoteView",
-          "group": "navigation@2"
+          "group": "navigation@11"
         },
         {
           "command": "treeNote.expandAll",
           "when": "view == treeNoteView && !treeNote.allExpanded",
-          "group": "navigation@3"
+          "group": "navigation@12"
         },
         {
           "command": "treeNote.collapseAll",
           "when": "view == treeNoteView && treeNote.allExpanded",
-          "group": "navigation@3"
+          "group": "navigation@12"
         },
         {
           "command": "treeNote.refreshEntry",
           "when": "view == treeNoteView",
-          "group": "navigation@4"
-        },
-        {
-          "command": "treeNote.syncToGist",
-          "when": "view == treeNoteView",
-          "group": "navigation@5"
+          "group": "navigation@13"
         }
       ],
       "view/item/context": [
