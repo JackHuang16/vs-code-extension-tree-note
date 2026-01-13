@@ -3,7 +3,7 @@
   "displayName": "Tree Note",
   "description": "A hierarchical note-taking extension for Antigravity.",
   "version": "1.6.0",
-  "publisher": "antigravity",
+  "publisher": "plusplus106",
   "author": "Jack Huang",
   "icon": "resources/icon.png",
   "engines": {
