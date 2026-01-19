@@ -14,10 +14,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/Plusplus106/vs-code-extension-tree-note.git"
+    "url": "https://github.com/JackHuang16/vs-code-extension-tree-note.git"
   },
   "bugs": {
-    "url": "https://github.com/Plusplus106/vs-code-extension-tree-note/issues"
+    "url": "https://github.com/JackHuang16/vs-code-extension-tree-note/issues"
   },
   "main": "./out/extension.js",
   "activationEvents": [],
