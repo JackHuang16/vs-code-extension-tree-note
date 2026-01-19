@@ -41,9 +41,10 @@
   - 即時阻擋非法字元（如 `/ \ : * ? " < > |`）。
   - 禁止建立以 `.` 開頭的隱藏檔案，確保檔案管理的一致性。
 
-### 5. 深度限制
+### 6. 多帳號支援與隔離
 
-- 預設支援最高 **3 層** 的資料夾深度，協助您保持筆記結構的簡潔與可讀性，避免過度嵌套。
+- **自定義 Token**：支援手動輸入 GitHub Personal Access Token (PAT)，讓您可以將 Tree Note 的同步帳號與 VS Code 的主帳號分開（例如：VS Code 使用 A 帳號，但筆記同步到 B 帳號）。
+- **徹底登出機制**：登出時會清除所有授權快取，確保切換帳號時能即時重新驗證，無需重啟 IDE。
 
 ## 🚀 快速上手
 
@@ -54,9 +55,11 @@
    - 資料存放路徑固定於 IDE 的全域儲存目錄中，確保您的筆記在不同專案間都能持續存取。
 4. **雲端同步**：
    - 點擊標題列的「Sync to GitHub Gist」圖示（雲端上傳圖示）。
-   - 依照提示登入您的 GitHub 帳號。
-   - 選擇「Create New GitHub Secret Gist」建立新同步，或輸入現有的 Gist ID 進行連結。
-   - 若要中斷同步，點擊「Disconnect Cloud」圖示（登出圖示）即可。
+   - **帳號設定**：
+     - **預設模式**：依照提示登入您的 GitHub 帳號。
+     - **進階模式（多帳號隔離）**：如果您想使用與 VS Code 不同的 GitHub 帳號，可以透過指令面板 (`Cmd+Shift+P`) 執行 `Tree Note: Enter GitHub Personal Access Token...` 並貼入具有 `gist` 權限的 Token。
+   - **連結 Gist**：選擇「Create New GitHub Secret Gist」建立新同步，或輸入現有的 Gist ID 進行連結。
+   - **中斷同步**：點擊「Disconnect Cloud」圖示（登出圖示）即可徹底清除目前的連結與授權狀態。
 
 您可以在 IDE 的全域儲存目錄中找到 `notes-data` 資料夾。
 
@@ -101,9 +104,10 @@
   - Real-time blocking of illegal characters (e.g., `/ \ : * ? " < > |`).
   - Prohibition of hidden files (starting with `.`) to ensure consistent file management.
 
-### 5. Depth Limitation
+### 6. Multi-Account Support & Isolation
 
-- Supports a maximum folder depth of **3 layers** by default, helping you keep your note structure clean, readable, and avoiding over-nesting.
+- **Custom Token**: Supports manually entering a GitHub Personal Access Token (PAT), allowing you to decouple the Tree Note sync account from your primary VS Code account.
+- **Thorough Sign-out Mechanism**: Clearing all authorization caches during sign-out ensures immediate re-authentication when switching accounts, with no IDE restart required.
 
 ## 🚀 Getting Started
 
@@ -114,8 +118,10 @@
    - All data is stored in your IDE's global storage directory, ensuring your notes persist across different workspaces.
 4. **Cloud Sync**:
    - Click the "Sync to GitHub Gist" icon (cloud upload icon) in the title bar.
-   - Follow the prompts to sign in with your GitHub account.
-   - Choose "Create New GitHub Secret Gist" or enter an existing Gist ID to connect.
-   - To stop syncing, click the "Disconnect Cloud" icon (sign-out icon).
+   - **Account Configuration**:
+     - **Default Mode**: Follow the prompts to sign in with your GitHub account.
+     - **Advanced Mode (Account Isolation)**: To use a different GitHub account, open the Command Palette (`Cmd+Shift+P`), run `Tree Note: Enter GitHub Personal Access Token...`, and paste a PAT with `gist` scope.
+   - **Connect Gist**: Choose "Create New GitHub Secret Gist" or enter an existing Gist ID to connect.
+   - **Disconnect**: Click the "Disconnect Cloud" icon (sign-out icon) to completely clear current connection and authorization states.
 
 You can find the `notes-data` folder within your IDE's global storage directory.
