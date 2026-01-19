@@ -24,6 +24,7 @@
 - **多裝置同步**：透過您的 GitHub Gist，輕鬆在不同電腦或不同 IDE (VS Code, Cursor, Antigravity...) 之間同步筆記。
 - **隱私安全**：預設僅支援使用 GitHub **Secret Gist**，確保您的筆記內容只有您自己可以存取。
 - **智慧衝突管理**：當多個裝置同時修改同一份筆記時，系統會自動建立「衝突副本」，確保資料絕對不會被覆蓋或遺失。
+- **存檔自動同步**：偵測到存檔動作時自動觸發雲端同步，並具備防抖 (Debounce) 與同步鎖定機制，確保效能並避免重複呼叫。
 - **無縫體驗**：登入 GitHub 帳號後，系統會自動處理上傳與下載，讓您專注於寫作。
 
 ### 3. 強大的樹狀操作
@@ -36,7 +37,6 @@
 
 - **智慧刪除確認**：刪除資料夾時，會顯示清晰的樹狀預覽（最多顯示 3 個項目），分層呈現即將被移除的內容，防止誤刪。
 - **輸入驗證系統**：
-
   - 自動修剪（Trim）名稱前後的空白。
   - 即時阻擋非法字元（如 `/ \ : * ? " < > |`）。
   - 禁止建立以 `.` 開頭的隱藏檔案，確保檔案管理的一致性。
@@ -84,6 +84,7 @@
 - **Multi-Device Sync**: Easily sync your notes across different computers or IDEs (VS Code, Cursor, Antigravity...) via your GitHub Gist.
 - **Privacy & Security**: Supports GitHub **Secret Gist** by default, ensuring your notes remain private and accessibles only to you.
 - **Smart Conflict Management**: Automatically creates "Conflict Copies" when multiple devices modify the same note, ensuring no data is ever lost or overwritten.
+- **Auto-Sync on Save**: Automatically triggers cloud synchronization when saving a note, with built-in debounce and synchronization locking to ensure efficiency and prevent redundant calls.
 - **Seamless Experience**: Once signed in with GitHub, the system handles uploads and downloads automatically, letting you focus on writing.
 
 ### 3. Powerful Tree Operations
