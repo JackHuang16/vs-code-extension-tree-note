@@ -34,14 +34,14 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.executeCommand(
       "setContext",
       "treeNote:hasGistId",
-      !!gistId
+      !!gistId,
     );
   };
 
   updateGistStatus();
 
   vscode.commands.registerCommand("treeNote.refreshEntry", () =>
-    noteProvider.refresh()
+    noteProvider.refresh(),
   );
 
   // === EXPAND / COLLAPSE (Refined) ===
@@ -61,7 +61,7 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.commands.executeCommand(
         "setContext",
         "treeNote.allExpanded",
-        true
+        true,
       );
     } catch (e) {
       console.log("Expand Error:", e);
@@ -70,7 +70,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   vscode.commands.registerCommand("treeNote.collapseAll", async () => {
     vscode.commands.executeCommand(
-      "workbench.actions.treeView.treeNoteView.collapseAll"
+      "workbench.actions.treeView.treeNoteView.collapseAll",
     );
     vscode.commands.executeCommand("setContext", "treeNote.allExpanded", false);
   });
@@ -109,7 +109,7 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     const allNames = Array.from(new Set([...notes, ...folders])).sort((a, b) =>
-      a.localeCompare(b)
+      a.localeCompare(b),
     );
 
     const LIMIT = 3;
@@ -238,7 +238,7 @@ export function activate(context: vscode.ExtensionContext) {
       "Disconnect from GitHub Gist? This will stop syncing but keep your local files safe.",
       { modal: true },
       disconnectItem,
-      cancelItem
+      cancelItem,
     );
     if (answer === disconnectItem) {
       localStateManager.setGistId("");
@@ -268,7 +268,7 @@ export function activate(context: vscode.ExtensionContext) {
     const answer = await vscode.window.showWarningMessage(
       message,
       { modal: true, detail: detail },
-      "Delete"
+      "Delete",
     );
     if (answer === "Delete") {
       try {
@@ -329,6 +329,33 @@ export function activate(context: vscode.ExtensionContext) {
       }
     }
   });
+
+  // === AUTO SYNC ON SAVE (with Debounce & Lock) ===
+  let autoSyncTimeout: NodeJS.Timeout | undefined;
+
+  context.subscriptions.push(
+    vscode.workspace.onDidSaveTextDocument(async (document) => {
+      if (
+        document.languageId === "markdown" &&
+        document.uri.fsPath.startsWith(rootPath)
+      ) {
+        const gistId = localStateManager.getGistId();
+        if (!gistId) return;
+
+        // Clear existing timeout to restart the debounce timer
+        if (autoSyncTimeout) {
+          clearTimeout(autoSyncTimeout);
+        }
+
+        autoSyncTimeout = setTimeout(async () => {
+          // Double check if we are already syncing before starting
+          if (!syncManager.isSyncing) {
+            await syncManager.sync(rootPath);
+          }
+        }, 2000); // Wait 2 seconds of inactivity before syncing
+      }
+    }),
+  );
 }
 
 export function deactivate() {}

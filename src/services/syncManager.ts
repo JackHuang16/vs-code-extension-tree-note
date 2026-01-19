@@ -14,11 +14,11 @@ import { initializeManifestFromGist } from "./manifestHandler";
 import { SyncExecutor, SyncAction } from "./syncExecutor";
 
 export class SyncManager {
-  private isSyncing = false;
+  public isSyncing = false;
 
   constructor(
     private gistService: GistService,
-    private localState: LocalStateManager
+    private localState: LocalStateManager,
   ) {}
 
   public async sync(rootPath: string): Promise<void> {
@@ -68,7 +68,7 @@ export class SyncManager {
               this.localState.setGistId("");
               await vscode.window.showErrorMessage(
                 "For privacy reasons, Tree Note only supports using Secret Gists. The linked Gist is currently Public. Please re-sync and create/select a Secret Gist.",
-                { modal: true }
+                { modal: true },
               );
               return;
             }
@@ -80,7 +80,7 @@ export class SyncManager {
               if (initResult.shouldDisconnect) {
                 this.localState.setGistId("");
                 vscode.window.showWarningMessage(
-                  "Gist connection cancelled. You have been disconnected."
+                  "Gist connection cancelled. You have been disconnected.",
                 );
               }
               return;
@@ -101,7 +101,7 @@ export class SyncManager {
             rootPath,
             localFiles,
             remoteManifest,
-            gistFiles
+            gistFiles,
           );
 
           if (token.isCancellationRequested) return;
@@ -109,20 +109,20 @@ export class SyncManager {
           // 6. Execute Actions
           const syncExecutor = new SyncExecutor(
             this.gistService,
-            this.localState
+            this.localState,
           );
 
           const uploadActions = actions.filter(
-            (a) => a.type === "upload" || a.type === "delete"
+            (a) => a.type === "upload" || a.type === "delete",
           );
           const downloadActions = actions.filter(
-            (a) => a.type === "download" || a.type === "conflict_gist"
+            (a) => a.type === "download" || a.type === "conflict_gist",
           );
 
           // Process Downloads (may generate conflict uploads)
           const conflictUploads = syncExecutor.processDownloadActions(
             downloadActions,
-            token
+            token,
           );
           if (token.isCancellationRequested) return;
 
@@ -137,7 +137,7 @@ export class SyncManager {
               remoteManifest,
               gistFiles,
               progress,
-              token
+              token,
             );
           }
 
@@ -154,9 +154,9 @@ export class SyncManager {
 
           this.localState.setLastSyncTime(Date.now());
           vscode.window.showInformationMessage(
-            "Tree Note synchronization complete!"
+            "Tree Note synchronization complete!",
           );
-        }
+        },
       );
     } finally {
       this.isSyncing = false;
@@ -174,7 +174,7 @@ export class SyncManager {
           this.localState.setGistId("");
           gistId = "";
           vscode.window.showWarningMessage(
-            "The linked Gist no longer exists. Please reconnect."
+            "The linked Gist no longer exists. Please reconnect.",
           );
         } else {
           throw error;
@@ -199,7 +199,7 @@ export class SyncManager {
       this.localState.setGistId("");
       await vscode.window.showErrorMessage(
         "The previously linked Gist was not found (404). Your connection has been reset. Please try syncing again.",
-        { modal: true }
+        { modal: true },
       );
       return;
     }
@@ -209,13 +209,13 @@ export class SyncManager {
       { modal: true },
       { title: "Logout Gist" },
       { title: "Open GitHub" },
-      { title: "Cancel", isCloseAffordance: true }
+      { title: "Cancel", isCloseAffordance: true },
     );
 
     if (selection?.title === "Logout Gist") {
       this.localState.setGistId("");
       vscode.window.showInformationMessage(
-        "Gist logged out. Local notes safe."
+        "Gist logged out. Local notes safe.",
       );
     } else if (selection?.title === "Open GitHub") {
       vscode.env.openExternal(vscode.Uri.parse("https://gist.github.com/mine"));
@@ -262,12 +262,12 @@ export class SyncManager {
 
     if (largeFiles.length > 0) {
       const message = `Files exceeding ${MAX_FILE_SIZE_MB}MB limit will NOT be synced:\n\n${largeFiles.join(
-        ", "
+        ", ",
       )}\n\nContinue?`;
       const choice = await vscode.window.showWarningMessage(
         message,
         { modal: true },
-        "Continue Syncing"
+        "Continue Syncing",
       );
       if (choice !== "Continue Syncing") {
         throw new Error("Sync cancelled due to large files.");
@@ -277,10 +277,10 @@ export class SyncManager {
     if (totalSize > MAX_TOTAL_SIZE_MB) {
       const choice = await vscode.window.showWarningMessage(
         `Total sync size (${totalSize.toFixed(
-          1
+          1,
         )}MB) exceeds recommended ${MAX_TOTAL_SIZE_MB}MB. Continue?`,
         { modal: true },
-        "Continue"
+        "Continue",
       );
       if (choice !== "Continue") {
         throw new Error("Sync cancelled due to total size limit.");
@@ -292,7 +292,7 @@ export class SyncManager {
     rootPath: string,
     localFiles: string[],
     remoteManifest: Manifest,
-    gistFiles: any
+    gistFiles: any,
   ): Promise<SyncAction[]> {
     const actions: SyncAction[] = [];
     const localProcessedIds = new Set<string>();
@@ -405,7 +405,7 @@ export class SyncManager {
         placeHolder:
           "Tree Note Cloud Sync: Choose how to sync with GitHub Gist",
         ignoreFocusOut: true,
-      }
+      },
     );
 
     if (selection === createOption) {
