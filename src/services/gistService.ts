@@ -3,16 +3,33 @@ import * as https from "https";
 
 export class GistService {
   private _token: string | undefined;
+  private _customToken: string | undefined;
 
   constructor() {}
 
+  public setCustomToken(token: string | undefined): void {
+    this._customToken = token;
+    this._token = undefined; // Force re-authentication if token changes
+  }
+
+  public clearToken(): void {
+    this._token = undefined;
+    this._customToken = undefined;
+  }
+
   private async ensureAuthenticated(): Promise<string> {
+    // If we have a manually set custom token (e.g. from B account), use it exclusively
+    if (this._customToken) {
+      return this._customToken;
+    }
+
     if (this._token) {
       return this._token;
     }
 
     const session = await vscode.authentication.getSession("github", ["gist"], {
       createIfNone: true,
+      clearSessionPreference: true,
     });
     if (session) {
       this._token = session.accessToken;
@@ -25,7 +42,7 @@ export class GistService {
   private async request(
     method: string,
     path: string,
-    body?: any
+    body?: any,
   ): Promise<any> {
     const token = await this.ensureAuthenticated();
 
@@ -64,8 +81,8 @@ export class GistService {
           } else {
             reject(
               new Error(
-                `GitHub API request failed: ${res.statusCode} ${res.statusMessage} - ${data}`
-              )
+                `GitHub API request failed: ${res.statusCode} ${res.statusMessage} - ${data}`,
+              ),
             );
           }
         });
@@ -90,7 +107,7 @@ export class GistService {
   async createGist(
     description: string,
     files: Record<string, { content: string }>,
-    isPublic: boolean = false
+    isPublic: boolean = false,
   ): Promise<any> {
     return this.request("POST", "/gists", {
       description,
@@ -106,7 +123,7 @@ export class GistService {
    */
   async updateGist(
     gistId: string,
-    files: Record<string, { content: string } | null>
+    files: Record<string, { content: string } | null>,
   ): Promise<any> {
     return this.request("PATCH", `/gists/${gistId}`, {
       files,

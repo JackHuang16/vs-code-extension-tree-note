@@ -21,6 +21,13 @@ export function activate(context: vscode.ExtensionContext) {
   const localStateManager = new LocalStateManager(context);
   const syncManager = new SyncManager(gistService, localStateManager);
 
+  // Load custom token if exists
+  context.secrets.get("githubToken").then((token) => {
+    if (token) {
+      gistService.setCustomToken(token);
+    }
+  });
+
   const noteProvider = new NoteProvider(rootPath);
 
   const treeView = vscode.window.createTreeView("treeNoteView", {
@@ -39,6 +46,25 @@ export function activate(context: vscode.ExtensionContext) {
   };
 
   updateGistStatus();
+
+  vscode.commands.registerCommand("treeNote.setCustomToken", async () => {
+    const token = await vscode.window.showInputBox({
+      prompt: "Enter GitHub Personal Access Token (with 'gist' scope)",
+      placeHolder: "ghp_...",
+      ignoreFocusOut: true,
+      password: true,
+    });
+
+    if (token !== undefined) {
+      await context.secrets.store("githubToken", token);
+      gistService.setCustomToken(token || undefined);
+      vscode.window.showInformationMessage(
+        token
+          ? "Custom GitHub Token saved successfully!"
+          : "Custom GitHub Token cleared. Using VS Code default account.",
+      );
+    }
+  });
 
   vscode.commands.registerCommand("treeNote.refreshEntry", () =>
     noteProvider.refresh(),
@@ -242,6 +268,7 @@ export function activate(context: vscode.ExtensionContext) {
     );
     if (answer === disconnectItem) {
       localStateManager.setGistId("");
+      gistService.clearToken();
       updateGistStatus();
       vscode.window.showInformationMessage("Disconnected from GitHub Gist.");
     }
