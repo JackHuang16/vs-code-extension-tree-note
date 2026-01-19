@@ -54,7 +54,7 @@ describe("GistService", () => {
       expect(mockedVscode.authentication.getSession).toHaveBeenCalledWith(
         "github",
         ["gist"],
-        { createIfNone: true }
+        { createIfNone: true, clearSessionPreference: true },
       );
     });
 
@@ -62,7 +62,7 @@ describe("GistService", () => {
       mockedVscode.authentication.getSession.mockResolvedValue(null);
 
       await expect(service.getGist("123")).rejects.toThrow(
-        "GitHub authentication failed or was cancelled."
+        "GitHub authentication failed or was cancelled.",
       );
     });
   });
@@ -91,7 +91,7 @@ describe("GistService", () => {
           path: expect.stringContaining("/gists/gist-id"),
           hostname: "api.github.com",
         }),
-        expect.any(Function)
+        expect.any(Function),
       );
     });
 
@@ -112,14 +112,14 @@ describe("GistService", () => {
           method: "POST",
           path: "/gists",
         }),
-        expect.any(Function)
+        expect.any(Function),
       );
       expect(mockRequest.write).toHaveBeenCalledWith(
         JSON.stringify({
           description: "desc",
           public: true,
           files,
-        })
+        }),
       );
     });
 
@@ -139,7 +139,7 @@ describe("GistService", () => {
           method: "PATCH",
           path: "/gists/gist-id",
         }),
-        expect.any(Function)
+        expect.any(Function),
       );
     });
 
@@ -155,7 +155,7 @@ describe("GistService", () => {
       });
 
       await expect(promise).rejects.toThrow(
-        "GitHub API request failed: 404 Not Found - File not found"
+        "GitHub API request failed: 404 Not Found - File not found",
       );
     });
 
