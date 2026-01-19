@@ -125,6 +125,10 @@ export class GistService {
     gistId: string,
     files: Record<string, { content: string } | null>,
   ): Promise<any> {
+    if (Object.keys(files).length === 0) {
+      return Promise.resolve({});
+    }
+
     return this.request("PATCH", `/gists/${gistId}`, {
       files,
     });

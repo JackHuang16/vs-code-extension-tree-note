@@ -143,6 +143,13 @@ describe("GistService", () => {
       );
     });
 
+    it("updateGist should return empty object and not call API if files is empty", async () => {
+      const result = await service.updateGist("gist-id", {});
+
+      expect(result).toEqual({});
+      expect(mockedHttps.request).not.toHaveBeenCalled();
+    });
+
     it("should handle API errors", async () => {
       mockResponse.statusCode = 404;
       mockResponse.statusMessage = "Not Found";
